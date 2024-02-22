@@ -39,9 +39,23 @@ class ScreenshotDetector(private val context: Context,
             } else {
                 queryDataColumn(uri)
             }
-        }  catch (e:Exception){
+        } catch (e: Exception) {
             listOf()
         }
+    }
+
+    private val keywords = listOf(
+        "screenshot", "screen_shot", "screen-shot", "screen shot",
+        "screencapture", "screen_capture", "screen-capture", "screen capture",
+        "screencap", "screen_cap", "screen-cap", "screen cap", "snap"
+    );
+
+    private fun checkScreenShot(data: String?): Boolean {
+        if (data == null || data.length < 2) return false
+
+        val lowerCaseData = data.lowercase()
+        println(lowerCaseData)
+        return keywords.any { lowerCaseData.contains(it) }
     }
 
     private fun queryDataColumn(uri: Uri): List<String> {
@@ -91,14 +105,14 @@ class ScreenshotDetector(private val context: Context,
             while (cursor.moveToNext()) {
                 val name = cursor.getString(displayNameColumn)
                 val relativePath = cursor.getString(relativePathColumn)
-                if (name.contains("screenshot", true) or
-                        relativePath.contains("screenshot", true)
-                ) {
+                if (checkScreenShot(name) or checkScreenShot(relativePath)) {
                     screenshots.add(name)
                 }
             }
         }
-
+        if (screenshots.isEmpty()) {
+            screenshots.add(uri.toString())
+        }
         return screenshots
     }
 
